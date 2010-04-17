@@ -1,5 +1,5 @@
 %{ open Ast
-let parse_error s= print_endline s
+
  %}
 
 %token LPAREN RPAREN LBRACE RBRACE COLON COMMA PLUS MINUS TIMES DIV MOD
@@ -34,7 +34,9 @@ formal_list:
 
 
 program:
-	| fdecl { $1 }
+	/*| { [] }*/
+	| fdecl { [$1] }
+	| program fdecl EOF {$2 :: $1}
 
 fdecl:
 	FUNCTION ID formal_list COLON stmt_list END
@@ -44,18 +46,20 @@ fdecl:
 	
 formal_list:
 		ID {[$1]}
-	| formal_list COMMA ID {$3 :: $1 }
+	| formal_list ID {$2 :: $1 }
 
 vdecl:
 	ID { $1 }
 
 stmt_list:
 		/*nothing { [] }*/
-	| stmt_list stmt { $2 :: $1 }
+	| stmt { [$1] }
+	| stmt_list stmt  { $2 :: $1 }
 
 stmt:
-		expr EOL {Expr($1)}
-	| IF expr COLON stmt ELSE stmt { If($2, $4, $6)}
+		expr {Expr($1)}
+	| IF  expr COLON  stmt ELSE  stmt { If($2, $4, $6)}
+
 
 expr:
 	  ID { Id($1) }

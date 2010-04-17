@@ -1,8 +1,17 @@
-{ open Parser }
+{ 
+	open Parser
+	open Lexing
+	let incr_lineno lexbuf = 
+		let pos = lexbuf.lex_curr_p in
+		lexbuf.lex_curr_p <- {pos with
+			 pos_lnum = pos.pos_lnum + 1;
+			 pos_bol = pos.pos_cnum;
+			}
+	 }
 
 rule token = parse
    [' ' '\t'] { token lexbuf }
-	| ['\r' '\n']+  {EOL}
+	| ['\r' '\n']  {incr_lineno lexbuf; token lexbuf}
   | '+' { PLUS }
   | '-' { MINUS }
   | '*' { TIMES }
