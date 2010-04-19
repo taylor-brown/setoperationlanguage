@@ -18,25 +18,11 @@
 %type < Ast.program> program
 
 %%
-/*
-program:
-	EOL { Noexpr }
-	| expr EOL { $1 }
-
-expr:
-	 LITERAL {Literal($1) }
-	| LPAREN expr RPAREN { $2 }
-	| ID LPAREN formal_list RPAREN { Call( $1, $3) }
-	
-formal_list:
-	| LITERAL { Literal($1) }
-*/
-
 
 program:
 	/*| { [] }*/
 	| fdecl { [$1] }
-	| program fdecl EOF {$2 :: $1}
+	| program fdecl {$2 :: $1}
 
 fdecl:
 	FUNCTION ID formal_list COLON stmt_list END
@@ -48,17 +34,16 @@ formal_list:
 		ID {[$1]}
 	| formal_list ID {$2 :: $1 }
 
-vdecl:
-	ID { $1 }
+/*vdecl:
+	ID { $1 }*/
 
 stmt_list:
-		/*nothing { [] }*/
 	| stmt { [$1] }
 	| stmt_list stmt  { $2 :: $1 }
 
 stmt:
 		expr {Expr($1)}
-	| IF  expr COLON  stmt ELSE  stmt { If($2, $4, $6)}
+	| IF  expr COLON  stmt ELSE  stmt END { If($2, $4, $6)}
 
 
 expr:
@@ -79,15 +64,16 @@ expr:
   | ID ASSIGN expr { Assign($1, $3)}
 	| LPAREN expr RPAREN {$2}
 	| LITERAL { Literal($1) }
+	| STR { Str($1) }
   /*| INT { Int($1) }
   | FLOAT { Float($1) } */
-	/*| LBRACE expr RBRACE { Set($2) }*/
+	| LBRACE optionals_list RBRACE { Set($2) }
 	| ID LPAREN actuals_list RPAREN {Call($1, $3)}
 
-/*expr_opt:
-		/*nothing {Noexpr}
-	/*| expr {$1}*/
-	
+optionals_list:
+	 {[]}
+	| expr { [$1] }
+	| optionals_list expr { $2 :: $1 }
 
 actuals_list:
 	  expr { [$1] }
