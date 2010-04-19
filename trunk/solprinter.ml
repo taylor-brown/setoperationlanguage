@@ -23,7 +23,7 @@ let rec string_of_expr = function
 	| Call(f, el)  ->  f ^ "(" ^ String.concat ", " (List.rev (List.map string_of_expr el)) ^ ")"
 	| Func(f)  -> "not implemented\n"
 	| Str(s) -> s
-	| Set(set) -> "some set..."
+	| Set(set) -> "{ " ^ String.concat " " (List.rev (List.map string_of_expr set)) ^ "}" 
 	| Noexpr -> ""
 
 let rec string_of_stmt = function
