@@ -31,7 +31,8 @@ fdecl:
 				body = List.rev $5}} 
 	
 formal_list:
-		ID {[$1]}
+	|    {[] }
+	|	ID {[$1]}
 	| formal_list ID {$2 :: $1 }
 
 /*vdecl:
