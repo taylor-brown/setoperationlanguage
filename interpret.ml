@@ -14,22 +14,37 @@ let run (funcs) =
 			(fun funcs fdecl -> NameMap.add fdecl.fname fdecl funcs)
 			NameMap.empty funcs
 	in
-	let rec eval top = function
-		| Noexpr -> top
+(* let rec eval top = function | Noexpr -> top in *)
+	let rec call fdecl args =
+		let inargs = 
+			List.fold_left2 (fun inargs argval local -> NameMap.add local argval inargs) NameMap.empty fdecl.formals args 
+		in
+		let rec eval locals expr = match expr with
+			| Noexpr -> (Set([Noexpr]), locals)
+(*			| Set(elements) -> (*trying to make this return a set, which itself is a list of Ast.expr.  not working.*)
+				(Set(List.map (fun exprval locals -> exprval) (List.map (fun element -> eval locals element) elements)), locals)*)
+			| Assign(id, expr) -> let (exprval,_) = eval locals expr
+				in 
+				(exprval, NameMap.add id exprval locals)
+		in
+		let rec exec locals stmt_list = function
+			| Expr(expr) -> eval locals expr
+			| Block(stmts) -> (exec locals stmt_list)
+			| If(test, b1, b2) -> if (eval locals test) then exec locals b1 else exec locals b2
+			| _ -> raise(Failure "statement list escape")
+		in
+			exec inargs fdecl.body
 	in
-		print_endline("do something")
+		try call (List.hd func_decls) []
+		with | exn  -> raise (Failure "something went wrong")
+	funcs
 		
-(*
-	in
-	eval(0,List.hd(List.rev funcs.body))
-	*)
-	(* Put function declarations in a symbol table *)
-	(*let func_decls = List.fold_left
-			(fun funcs fdecl -> NameMap.add fdecl.fname fdecl funcs)
-			NameMap.empty funcs
-	in
-	
-	(* Invoke a function and return an updated global symbol table *)
+	 
+		
+(* in eval(0,List.hd(List.rev funcs.body)) Put function declarations in a  *)
+(* symbol table let func_decls = List.fold_left (fun funcs fdecl ->        *)
+(* NameMap.add fdecl.fname fdecl funcs) NameMap.empty funcs in (* Invoke a *)
+(* function and return an updated global symbol table                      *)
 	let rec call fdecl actuals globals =
 		
 		(* Evaluate an expression and return (value, updated environment) *)
@@ -133,7 +148,7 @@ let run (funcs) =
 			(fun globals vdecl -> NameMap.add vdecl 0 globals) NameMap.empty vars
 	in try
 		call (NameMap.find "main" func_decls) [] globals
-	with Not_found -> raise (Failure ("did not find the main() function"))*)
+	with Not_found -> raise (Failure ("did not find the main() function")) *)
 
 (* let rec eval = function | Noexpr -> 1 | Literal(i) -> i | _ ->          *)
 (* print_endline("valid."); 1                                              *)

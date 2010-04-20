@@ -1,5 +1,9 @@
 OBJS = parser.cmo scanner.cmo solprinter.cmo interpret.cmo sol.cmo
 
+
+TESTS = \
+parser \
+
 TARFILES = Makefile testall.sh scanner.mll parser.mly \
 	ast.mli interpret.ml solprinter.ml sol.ml \
 	$(TESTS:%=tests/test-%.mc) \
