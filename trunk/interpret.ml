@@ -14,30 +14,30 @@ let run (funcs) =
 			(fun funcs fdecl -> NameMap.add fdecl.fname fdecl funcs)
 			NameMap.empty funcs
 	in
-(* let rec eval top = function | Noexpr -> top in *)
 	let rec call fdecl args =
 		let inargs = 
 			List.fold_left2 (fun inargs argval local -> NameMap.add local argval inargs) NameMap.empty fdecl.formals args 
 		in
 		let rec eval locals expr = match expr with
-			| Noexpr -> (Set([Noexpr]), locals)
+			| Noexpr -> locals, Set([Noexpr])
 (*			| Set(elements) -> (*trying to make this return a set, which itself is a list of Ast.expr.  not working.*)
 				(Set(List.map (fun exprval locals -> exprval) (List.map (fun element -> eval locals element) elements)), locals)*)
-			| Assign(id, expr) -> let (exprval,_) = eval locals expr
+			(*| Assign(id, expr) -> let (exprval,_) = eval locals expr
 				in 
-				(exprval, NameMap.add id exprval locals)
+				(exprval, NameMap.add id exprval locals)*)
 		in
-		let rec exec locals stmt_list = function
-			| Expr(expr) -> eval locals expr
-			| Block(stmts) -> (exec locals stmt_list)
-			| If(test, b1, b2) -> if (eval locals test) then exec locals b1 else exec locals b2
+		let rec exec locals stmts = match stmts with
+			| [Expr expr] -> eval locals expr
+			| Expr hd :: stmt -> let (local, _) = eval locals hd in exec local stmt  
+			(*| If(test, b1, b2) -> let(result,_) = (eval locals test)
+				in if result then exec locals b1 else exec locals b2*)
 			| _ -> raise(Failure "statement list escape")
 		in
 			exec inargs fdecl.body
 	in
-		try call (List.hd func_decls) []
+		try (call (List.hd funcs) [])
 		with | exn  -> raise (Failure "something went wrong")
-	funcs
+
 		
 	 
 		

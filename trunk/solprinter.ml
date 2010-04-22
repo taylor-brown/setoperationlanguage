@@ -27,11 +27,11 @@ let rec string_of_expr = function
 	| Noexpr -> ""
 
 let rec string_of_stmt = function
-	| Block(stmts) ->
-		"\t" ^ String.concat "" (List.map string_of_stmt stmts) ^ "\n"
+	(*| Block(stmts) ->
+		"\t" ^ String.concat "" (List.map string_of_stmt stmts) ^ "\n"*)
 	| Expr(expr)  -> string_of_expr expr ^ "\n"
 	| If(test, b1, b2)  -> "if (" ^ string_of_expr test ^ "):\n" ^
-			string_of_stmt b1 ^ "else:\n" ^ string_of_stmt b2 ^ "end\n" 
+			String.concat "" (List.map string_of_stmt b1) ^ "else:\n" ^ String.concat "" (List.map string_of_stmt b2) ^ "end\n" 
 
 let rec string_of_fdecl fdecl =
 	"function " ^fdecl.fname ^ " " ^ String.concat "," (List.rev fdecl.formals) ^ "\n" ^

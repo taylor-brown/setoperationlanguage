@@ -1,41 +1,49 @@
    0  $accept : %entry% $end
 
-   1  program :
-   2          | program vdecl
-   3          | program fdecl
+   1  program : fdecl
+   2          | program fdecl
 
-   4  fdecl : FUNCTION ID formal_list COLON stmt_list END
+   3  fdecl : FUNCTION ID formal_list COLON stmt_list END
 
-   5  formal_list : ID
-   6              | formal_list COMMA ID
+   4  formal_list :
+   5              | ID
+   6              | formal_list ID
 
-   7  vdecl : ID
+   7  stmt_list : stmt
+   8            | stmt_list stmt
 
-   8  stmt_list :
-   9            | stmt_list stmt
+   9  stmt : expr
+  10       | IF expr COLON stmt_list ELSE stmt_list END
 
-  10  stmt : expr
-  11       | IF expr COLON stmt ELSE stmt
+  11  expr : ID
+  12       | expr PLUS expr
+  13       | expr MINUS expr
+  14       | expr TIMES expr
+  15       | expr DIV expr
+  16       | expr MOD expr
+  17       | expr EQUALITY expr
+  18       | expr GTHAN expr
+  19       | expr LTHAN expr
+  20       | expr NSUB expr
+  21       | expr NEQUAL expr
+  22       | expr AND expr
+  23       | expr NOT expr
+  24       | expr OR expr
+  25       | ID ASSIGN expr
+  26       | LPAREN expr RPAREN
+  27       | LITERAL
+  28       | STR
+  29       | LBRACE optionals_list RBRACE
+  30       | ID LPAREN actuals_list RPAREN
 
-  12  expr : ID
-  13       | expr PLUS expr
-  14       | expr MINUS expr
-  15       | expr TIMES expr
-  16       | expr DIV expr
-  17       | expr MOD expr
-  18       | expr EQUALITY expr
-  19       | expr GTHAN expr
-  20       | expr LTHAN expr
-  21       | expr NSUB expr
-  22       | expr NEQUAL expr
-  23       | expr AND expr
-  24       | expr NOT expr
-  25       | expr OR expr
-  26       | ID ASSIGN expr
-  27       | LPAREN expr RPAREN
-  28       | LITERAL
+  31  optionals_list :
+  32                 | expr
+  33                 | optionals_list expr
 
-  29  %entry% : '\001' program
+  34  actuals_list : expr
+  35               | actuals_list expr
+
+  36  %entry% : '\001' program
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -47,12 +55,13 @@ state 0
 
 
 state 1
-	%entry% : '\001' . program  (29)
-	program : .  (1)
+	%entry% : '\001' . program  (36)
 
-	.  reduce 1
+	FUNCTION  shift 3
+	.  error
 
-	program  goto 3
+	program  goto 4
+	fdecl  goto 5
 
 
 state 2
@@ -62,151 +71,746 @@ state 2
 
 
 state 3
-	program : program . vdecl  (2)
-	program : program . fdecl  (3)
-	%entry% : '\001' program .  (29)
+	fdecl : FUNCTION . ID formal_list COLON stmt_list END  (3)
 
-	FUNCTION  shift 4
-	ID  shift 5
-	$end  reduce 29
-
-	vdecl  goto 6
-	fdecl  goto 7
-
-
-state 4
-	fdecl : FUNCTION . ID formal_list COLON stmt_list END  (4)
-
-	ID  shift 8
+	ID  shift 6
 	.  error
 
 
+state 4
+	program : program . fdecl  (2)
+	%entry% : '\001' program .  (36)
+
+	FUNCTION  shift 3
+	$end  reduce 36
+
+	fdecl  goto 7
+
+
 state 5
-	vdecl : ID .  (7)
+	program : fdecl .  (1)
 
-	.  reduce 7
+	.  reduce 1
 
 
+6: shift/reduce conflict (shift 8, reduce 4) on ID
 state 6
-	program : program vdecl .  (2)
+	fdecl : FUNCTION ID . formal_list COLON stmt_list END  (3)
+	formal_list : .  (4)
+
+	ID  shift 8
+	COLON  reduce 4
+
+	formal_list  goto 9
+
+
+state 7
+	program : program fdecl .  (2)
 
 	.  reduce 2
 
 
-state 7
-	program : program fdecl .  (3)
-
-	.  reduce 3
-
-
 state 8
-	fdecl : FUNCTION ID . formal_list COLON stmt_list END  (4)
-
-	ID  shift 9
-	.  error
-
-	formal_list  goto 10
-
-
-state 9
 	formal_list : ID .  (5)
 
 	.  reduce 5
 
 
-state 10
-	fdecl : FUNCTION ID formal_list . COLON stmt_list END  (4)
-	formal_list : formal_list . COMMA ID  (6)
+state 9
+	fdecl : FUNCTION ID formal_list . COLON stmt_list END  (3)
+	formal_list : formal_list . ID  (6)
 
-	COLON  shift 11
-	COMMA  shift 12
+	COLON  shift 10
+	ID  shift 11
 	.  error
+
+
+state 10
+	fdecl : FUNCTION ID formal_list COLON . stmt_list END  (3)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	IF  shift 14
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	stmt_list  goto 18
+	stmt  goto 19
+	expr  goto 20
 
 
 state 11
-	fdecl : FUNCTION ID formal_list COLON . stmt_list END  (4)
-	stmt_list : .  (8)
-
-	.  reduce 8
-
-	stmt_list  goto 13
-
-
-state 12
-	formal_list : formal_list COMMA . ID  (6)
-
-	ID  shift 14
-	.  error
-
-
-state 13
-	fdecl : FUNCTION ID formal_list COLON stmt_list . END  (4)
-	stmt_list : stmt_list . stmt  (9)
-
-	LPAREN  shift 15
-	IF  shift 16
-	END  shift 17
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	stmt  goto 20
-	expr  goto 21
-
-
-state 14
-	formal_list : formal_list COMMA ID .  (6)
+	formal_list : formal_list ID .  (6)
 
 	.  reduce 6
 
 
-state 15
-	expr : LPAREN . expr RPAREN  (27)
+state 12
+	expr : LPAREN . expr RPAREN  (26)
 
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
 	.  error
+
+	expr  goto 21
+
+
+13: shift/reduce conflict (shift 12, reduce 31) on LPAREN
+13: shift/reduce conflict (shift 13, reduce 31) on LBRACE
+13: shift/reduce conflict (shift 15, reduce 31) on LITERAL
+13: shift/reduce conflict (shift 16, reduce 31) on ID
+13: shift/reduce conflict (shift 17, reduce 31) on STR
+state 13
+	expr : LBRACE . optionals_list RBRACE  (29)
+	optionals_list : .  (31)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	RBRACE  reduce 31
 
 	expr  goto 22
+	optionals_list  goto 23
 
 
-state 16
-	stmt : IF . expr COLON stmt ELSE stmt  (11)
+state 14
+	stmt : IF . expr COLON stmt_list ELSE stmt_list END  (10)
 
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
 	.  error
 
-	expr  goto 23
+	expr  goto 24
+
+
+state 15
+	expr : LITERAL .  (27)
+
+	.  reduce 27
+
+
+16: shift/reduce conflict (shift 25, reduce 11) on LPAREN
+state 16
+	expr : ID .  (11)
+	expr : ID . ASSIGN expr  (25)
+	expr : ID . LPAREN actuals_list RPAREN  (30)
+
+	LPAREN  shift 25
+	ASSIGN  shift 26
+	RPAREN  reduce 11
+	LBRACE  reduce 11
+	RBRACE  reduce 11
+	COLON  reduce 11
+	PLUS  reduce 11
+	MINUS  reduce 11
+	TIMES  reduce 11
+	DIV  reduce 11
+	MOD  reduce 11
+	AND  reduce 11
+	NOT  reduce 11
+	OR  reduce 11
+	LTHAN  reduce 11
+	GTHAN  reduce 11
+	EQUALITY  reduce 11
+	NSUB  reduce 11
+	NEQUAL  reduce 11
+	IF  reduce 11
+	ELSE  reduce 11
+	END  reduce 11
+	LITERAL  reduce 11
+	ID  reduce 11
+	STR  reduce 11
 
 
 state 17
-	fdecl : FUNCTION ID formal_list COLON stmt_list END .  (4)
-
-	.  reduce 4
-
-
-state 18
-	expr : LITERAL .  (28)
+	expr : STR .  (28)
 
 	.  reduce 28
 
 
-state 19
-	expr : ID .  (12)
-	expr : ID . ASSIGN expr  (26)
+state 18
+	fdecl : FUNCTION ID formal_list COLON stmt_list . END  (3)
+	stmt_list : stmt_list . stmt  (8)
 
-	ASSIGN  shift 24
+	LPAREN  shift 12
+	LBRACE  shift 13
+	IF  shift 14
+	END  shift 27
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	stmt  goto 28
+	expr  goto 20
+
+
+state 19
+	stmt_list : stmt .  (7)
+
+	.  reduce 7
+
+
+state 20
+	stmt : expr .  (9)
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	EQUALITY  shift 39
+	NSUB  shift 40
+	NEQUAL  shift 41
+	LPAREN  reduce 9
+	LBRACE  reduce 9
+	IF  reduce 9
+	ELSE  reduce 9
+	END  reduce 9
+	LITERAL  reduce 9
+	ID  reduce 9
+	STR  reduce 9
+
+
+state 21
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+	expr : LPAREN expr . RPAREN  (26)
+
+	RPAREN  shift 42
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	EQUALITY  shift 39
+	NSUB  shift 40
+	NEQUAL  shift 41
+	.  error
+
+
+state 22
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+	optionals_list : expr .  (32)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	EQUALITY  shift 39
+	NSUB  shift 40
+	NEQUAL  shift 41
+	LPAREN  reduce 32
+	LBRACE  reduce 32
+	RBRACE  reduce 32
+	LITERAL  reduce 32
+	ID  reduce 32
+	STR  reduce 32
+
+
+state 23
+	expr : LBRACE optionals_list . RBRACE  (29)
+	optionals_list : optionals_list . expr  (33)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	RBRACE  shift 43
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 44
+
+
+state 24
+	stmt : IF expr . COLON stmt_list ELSE stmt_list END  (10)
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+
+	COLON  shift 45
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	EQUALITY  shift 39
+	NSUB  shift 40
+	NEQUAL  shift 41
+	.  error
+
+
+state 25
+	expr : ID LPAREN . actuals_list RPAREN  (30)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 46
+	actuals_list  goto 47
+
+
+state 26
+	expr : ID ASSIGN . expr  (25)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 48
+
+
+state 27
+	fdecl : FUNCTION ID formal_list COLON stmt_list END .  (3)
+
+	.  reduce 3
+
+
+state 28
+	stmt_list : stmt_list stmt .  (8)
+
+	.  reduce 8
+
+
+state 29
+	expr : expr PLUS . expr  (12)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 49
+
+
+state 30
+	expr : expr MINUS . expr  (13)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 50
+
+
+state 31
+	expr : expr TIMES . expr  (14)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 51
+
+
+state 32
+	expr : expr DIV . expr  (15)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 52
+
+
+state 33
+	expr : expr MOD . expr  (16)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 53
+
+
+state 34
+	expr : expr AND . expr  (22)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 54
+
+
+state 35
+	expr : expr NOT . expr  (23)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 55
+
+
+state 36
+	expr : expr OR . expr  (24)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 56
+
+
+state 37
+	expr : expr LTHAN . expr  (19)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 57
+
+
+state 38
+	expr : expr GTHAN . expr  (18)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 58
+
+
+state 39
+	expr : expr EQUALITY . expr  (17)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 59
+
+
+state 40
+	expr : expr NSUB . expr  (20)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 60
+
+
+state 41
+	expr : expr NEQUAL . expr  (21)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 61
+
+
+state 42
+	expr : LPAREN expr RPAREN .  (26)
+
+	.  reduce 26
+
+
+state 43
+	expr : LBRACE optionals_list RBRACE .  (29)
+
+	.  reduce 29
+
+
+state 44
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+	optionals_list : optionals_list expr .  (33)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	EQUALITY  shift 39
+	NSUB  shift 40
+	NEQUAL  shift 41
+	LPAREN  reduce 33
+	LBRACE  reduce 33
+	RBRACE  reduce 33
+	LITERAL  reduce 33
+	ID  reduce 33
+	STR  reduce 33
+
+
+state 45
+	stmt : IF expr COLON . stmt_list ELSE stmt_list END  (10)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	IF  shift 14
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	stmt_list  goto 62
+	stmt  goto 19
+	expr  goto 20
+
+
+state 46
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+	actuals_list : expr .  (34)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	EQUALITY  shift 39
+	NSUB  shift 40
+	NEQUAL  shift 41
+	LPAREN  reduce 34
+	RPAREN  reduce 34
+	LBRACE  reduce 34
+	LITERAL  reduce 34
+	ID  reduce 34
+	STR  reduce 34
+
+
+state 47
+	expr : ID LPAREN actuals_list . RPAREN  (30)
+	actuals_list : actuals_list . expr  (35)
+
+	LPAREN  shift 12
+	RPAREN  shift 63
+	LBRACE  shift 13
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	expr  goto 64
+
+
+state 48
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+	expr : ID ASSIGN expr .  (25)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	EQUALITY  shift 39
+	NSUB  shift 40
+	NEQUAL  shift 41
+	LPAREN  reduce 25
+	RPAREN  reduce 25
+	LBRACE  reduce 25
+	RBRACE  reduce 25
+	COLON  reduce 25
+	IF  reduce 25
+	ELSE  reduce 25
+	END  reduce 25
+	LITERAL  reduce 25
+	ID  reduce 25
+	STR  reduce 25
+
+
+state 49
+	expr : expr . PLUS expr  (12)
+	expr : expr PLUS expr .  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
 	LPAREN  reduce 12
 	RPAREN  reduce 12
+	LBRACE  reduce 12
+	RBRACE  reduce 12
 	COLON  reduce 12
 	PLUS  reduce 12
 	MINUS  reduce 12
-	TIMES  reduce 12
-	DIV  reduce 12
-	MOD  reduce 12
 	AND  reduce 12
 	NOT  reduce 12
 	OR  reduce 12
@@ -220,350 +824,32 @@ state 19
 	END  reduce 12
 	LITERAL  reduce 12
 	ID  reduce 12
-
-
-state 20
-	stmt_list : stmt_list stmt .  (9)
-
-	.  reduce 9
-
-
-state 21
-	stmt : expr .  (10)
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
-
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	AND  shift 30
-	NOT  shift 31
-	OR  shift 32
-	LTHAN  shift 33
-	GTHAN  shift 34
-	EQUALITY  shift 35
-	NSUB  shift 36
-	NEQUAL  shift 37
-	LPAREN  reduce 10
-	IF  reduce 10
-	ELSE  reduce 10
-	END  reduce 10
-	LITERAL  reduce 10
-	ID  reduce 10
-
-
-state 22
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
-	expr : LPAREN expr . RPAREN  (27)
-
-	RPAREN  shift 38
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	AND  shift 30
-	NOT  shift 31
-	OR  shift 32
-	LTHAN  shift 33
-	GTHAN  shift 34
-	EQUALITY  shift 35
-	NSUB  shift 36
-	NEQUAL  shift 37
-	.  error
-
-
-state 23
-	stmt : IF expr . COLON stmt ELSE stmt  (11)
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
-
-	COLON  shift 39
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	AND  shift 30
-	NOT  shift 31
-	OR  shift 32
-	LTHAN  shift 33
-	GTHAN  shift 34
-	EQUALITY  shift 35
-	NSUB  shift 36
-	NEQUAL  shift 37
-	.  error
-
-
-state 24
-	expr : ID ASSIGN . expr  (26)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 40
-
-
-state 25
-	expr : expr PLUS . expr  (13)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 41
-
-
-state 26
-	expr : expr MINUS . expr  (14)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 42
-
-
-state 27
-	expr : expr TIMES . expr  (15)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 43
-
-
-state 28
-	expr : expr DIV . expr  (16)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 44
-
-
-state 29
-	expr : expr MOD . expr  (17)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 45
-
-
-state 30
-	expr : expr AND . expr  (23)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 46
-
-
-state 31
-	expr : expr NOT . expr  (24)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 47
-
-
-state 32
-	expr : expr OR . expr  (25)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 48
-
-
-state 33
-	expr : expr LTHAN . expr  (20)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 49
-
-
-state 34
-	expr : expr GTHAN . expr  (19)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 50
-
-
-state 35
-	expr : expr EQUALITY . expr  (18)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 51
-
-
-state 36
-	expr : expr NSUB . expr  (21)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 52
-
-
-state 37
-	expr : expr NEQUAL . expr  (22)
-
-	LPAREN  shift 15
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	expr  goto 53
-
-
-state 38
-	expr : LPAREN expr RPAREN .  (27)
-
-	.  reduce 27
-
-
-state 39
-	stmt : IF expr COLON . stmt ELSE stmt  (11)
-
-	LPAREN  shift 15
-	IF  shift 16
-	LITERAL  shift 18
-	ID  shift 19
-	.  error
-
-	stmt  goto 54
-	expr  goto 21
-
-
-state 40
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
-	expr : ID ASSIGN expr .  (26)
-
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	AND  shift 30
-	NOT  shift 31
-	OR  shift 32
-	LTHAN  shift 33
-	GTHAN  shift 34
-	EQUALITY  shift 35
-	NSUB  shift 36
-	NEQUAL  shift 37
-	LPAREN  reduce 26
-	RPAREN  reduce 26
-	COLON  reduce 26
-	IF  reduce 26
-	ELSE  reduce 26
-	END  reduce 26
-	LITERAL  reduce 26
-	ID  reduce 26
-
-
-state 41
-	expr : expr . PLUS expr  (13)
-	expr : expr PLUS expr .  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
-
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
+	STR  reduce 12
+
+
+state 50
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr MINUS expr .  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
 	LPAREN  reduce 13
 	RPAREN  reduce 13
+	LBRACE  reduce 13
+	RBRACE  reduce 13
 	COLON  reduce 13
 	PLUS  reduce 13
 	MINUS  reduce 13
@@ -580,128 +866,134 @@ state 41
 	END  reduce 13
 	LITERAL  reduce 13
 	ID  reduce 13
+	STR  reduce 13
 
 
-state 42
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr MINUS expr .  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
+state 51
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr TIMES expr .  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
 
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	LPAREN  reduce 14
-	RPAREN  reduce 14
-	COLON  reduce 14
-	PLUS  reduce 14
-	MINUS  reduce 14
-	AND  reduce 14
-	NOT  reduce 14
-	OR  reduce 14
-	LTHAN  reduce 14
-	GTHAN  reduce 14
-	EQUALITY  reduce 14
-	NSUB  reduce 14
-	NEQUAL  reduce 14
-	IF  reduce 14
-	ELSE  reduce 14
-	END  reduce 14
-	LITERAL  reduce 14
-	ID  reduce 14
+	.  reduce 14
 
 
-state 43
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr TIMES expr .  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
+state 52
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr DIV expr .  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
 
 	.  reduce 15
 
 
-state 44
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr DIV expr .  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
+state 53
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr MOD expr .  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
 
 	.  reduce 16
 
 
-state 45
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr MOD expr .  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
+state 54
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr AND expr .  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
 
-	.  reduce 17
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	NSUB  shift 40
+	LPAREN  reduce 22
+	RPAREN  reduce 22
+	LBRACE  reduce 22
+	RBRACE  reduce 22
+	COLON  reduce 22
+	AND  reduce 22
+	NOT  reduce 22
+	OR  reduce 22
+	LTHAN  reduce 22
+	GTHAN  reduce 22
+	EQUALITY  reduce 22
+	NEQUAL  reduce 22
+	IF  reduce 22
+	ELSE  reduce 22
+	END  reduce 22
+	LITERAL  reduce 22
+	ID  reduce 22
+	STR  reduce 22
 
 
-state 46
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr AND expr .  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
+state 55
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr NOT expr .  (23)
+	expr : expr . OR expr  (24)
 
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	NSUB  shift 36
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	NSUB  shift 40
 	LPAREN  reduce 23
 	RPAREN  reduce 23
+	LBRACE  reduce 23
+	RBRACE  reduce 23
 	COLON  reduce 23
 	AND  reduce 23
 	NOT  reduce 23
@@ -715,32 +1007,35 @@ state 46
 	END  reduce 23
 	LITERAL  reduce 23
 	ID  reduce 23
+	STR  reduce 23
 
 
-state 47
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr NOT expr .  (24)
-	expr : expr . OR expr  (25)
+state 56
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+	expr : expr OR expr .  (24)
 
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	NSUB  shift 36
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	NSUB  shift 40
 	LPAREN  reduce 24
 	RPAREN  reduce 24
+	LBRACE  reduce 24
+	RBRACE  reduce 24
 	COLON  reduce 24
 	AND  reduce 24
 	NOT  reduce 24
@@ -754,110 +1049,35 @@ state 47
 	END  reduce 24
 	LITERAL  reduce 24
 	ID  reduce 24
+	STR  reduce 24
 
 
-state 48
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
-	expr : expr OR expr .  (25)
+state 57
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr LTHAN expr .  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
 
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	NSUB  shift 36
-	LPAREN  reduce 25
-	RPAREN  reduce 25
-	COLON  reduce 25
-	AND  reduce 25
-	NOT  reduce 25
-	OR  reduce 25
-	LTHAN  reduce 25
-	GTHAN  reduce 25
-	EQUALITY  reduce 25
-	NEQUAL  reduce 25
-	IF  reduce 25
-	ELSE  reduce 25
-	END  reduce 25
-	LITERAL  reduce 25
-	ID  reduce 25
-
-
-state 49
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr LTHAN expr .  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
-
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	NSUB  shift 36
-	LPAREN  reduce 20
-	RPAREN  reduce 20
-	COLON  reduce 20
-	AND  reduce 20
-	NOT  reduce 20
-	OR  reduce 20
-	LTHAN  reduce 20
-	GTHAN  reduce 20
-	EQUALITY  reduce 20
-	NEQUAL  reduce 20
-	IF  reduce 20
-	ELSE  reduce 20
-	END  reduce 20
-	LITERAL  reduce 20
-	ID  reduce 20
-
-
-state 50
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr GTHAN expr .  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
-
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	NSUB  shift 36
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	NSUB  shift 40
 	LPAREN  reduce 19
 	RPAREN  reduce 19
+	LBRACE  reduce 19
+	RBRACE  reduce 19
 	COLON  reduce 19
 	AND  reduce 19
 	NOT  reduce 19
@@ -871,38 +1091,41 @@ state 50
 	END  reduce 19
 	LITERAL  reduce 19
 	ID  reduce 19
+	STR  reduce 19
 
 
-state 51
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr EQUALITY expr .  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
+state 58
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr GTHAN expr .  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
 
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	AND  shift 30
-	NOT  shift 31
-	OR  shift 32
-	LTHAN  shift 33
-	GTHAN  shift 34
-	NSUB  shift 36
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	NSUB  shift 40
 	LPAREN  reduce 18
 	RPAREN  reduce 18
+	LBRACE  reduce 18
+	RBRACE  reduce 18
 	COLON  reduce 18
+	AND  reduce 18
+	NOT  reduce 18
+	OR  reduce 18
+	LTHAN  reduce 18
+	GTHAN  reduce 18
 	EQUALITY  reduce 18
 	NEQUAL  reduce 18
 	IF  reduce 18
@@ -910,111 +1133,238 @@ state 51
 	END  reduce 18
 	LITERAL  reduce 18
 	ID  reduce 18
+	STR  reduce 18
 
 
-state 52
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr NSUB expr .  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
+state 59
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr EQUALITY expr .  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
 
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	NSUB  shift 40
+	LPAREN  reduce 17
+	RPAREN  reduce 17
+	LBRACE  reduce 17
+	RBRACE  reduce 17
+	COLON  reduce 17
+	EQUALITY  reduce 17
+	NEQUAL  reduce 17
+	IF  reduce 17
+	ELSE  reduce 17
+	END  reduce 17
+	LITERAL  reduce 17
+	ID  reduce 17
+	STR  reduce 17
+
+
+state 60
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr NSUB expr .  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	LPAREN  reduce 20
+	RPAREN  reduce 20
+	LBRACE  reduce 20
+	RBRACE  reduce 20
+	COLON  reduce 20
+	PLUS  reduce 20
+	MINUS  reduce 20
+	AND  reduce 20
+	NOT  reduce 20
+	OR  reduce 20
+	LTHAN  reduce 20
+	GTHAN  reduce 20
+	EQUALITY  reduce 20
+	NSUB  reduce 20
+	NEQUAL  reduce 20
+	IF  reduce 20
+	ELSE  reduce 20
+	END  reduce 20
+	LITERAL  reduce 20
+	ID  reduce 20
+	STR  reduce 20
+
+
+state 61
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr NEQUAL expr .  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	NSUB  shift 40
 	LPAREN  reduce 21
 	RPAREN  reduce 21
+	LBRACE  reduce 21
+	RBRACE  reduce 21
 	COLON  reduce 21
-	PLUS  reduce 21
-	MINUS  reduce 21
-	AND  reduce 21
-	NOT  reduce 21
-	OR  reduce 21
-	LTHAN  reduce 21
-	GTHAN  reduce 21
 	EQUALITY  reduce 21
-	NSUB  reduce 21
 	NEQUAL  reduce 21
 	IF  reduce 21
 	ELSE  reduce 21
 	END  reduce 21
 	LITERAL  reduce 21
 	ID  reduce 21
+	STR  reduce 21
 
 
-state 53
-	expr : expr . PLUS expr  (13)
-	expr : expr . MINUS expr  (14)
-	expr : expr . TIMES expr  (15)
-	expr : expr . DIV expr  (16)
-	expr : expr . MOD expr  (17)
-	expr : expr . EQUALITY expr  (18)
-	expr : expr . GTHAN expr  (19)
-	expr : expr . LTHAN expr  (20)
-	expr : expr . NSUB expr  (21)
-	expr : expr . NEQUAL expr  (22)
-	expr : expr NEQUAL expr .  (22)
-	expr : expr . AND expr  (23)
-	expr : expr . NOT expr  (24)
-	expr : expr . OR expr  (25)
+state 62
+	stmt_list : stmt_list . stmt  (8)
+	stmt : IF expr COLON stmt_list . ELSE stmt_list END  (10)
 
-	PLUS  shift 25
-	MINUS  shift 26
-	TIMES  shift 27
-	DIV  shift 28
-	MOD  shift 29
-	AND  shift 30
-	NOT  shift 31
-	OR  shift 32
-	LTHAN  shift 33
-	GTHAN  shift 34
-	NSUB  shift 36
-	LPAREN  reduce 22
-	RPAREN  reduce 22
-	COLON  reduce 22
-	EQUALITY  reduce 22
-	NEQUAL  reduce 22
-	IF  reduce 22
-	ELSE  reduce 22
-	END  reduce 22
-	LITERAL  reduce 22
-	ID  reduce 22
-
-
-state 54
-	stmt : IF expr COLON stmt . ELSE stmt  (11)
-
-	ELSE  shift 55
+	LPAREN  shift 12
+	LBRACE  shift 13
+	IF  shift 14
+	ELSE  shift 65
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
 	.  error
 
+	stmt  goto 28
+	expr  goto 20
 
-state 55
-	stmt : IF expr COLON stmt ELSE . stmt  (11)
 
-	LPAREN  shift 15
-	IF  shift 16
-	LITERAL  shift 18
-	ID  shift 19
+state 63
+	expr : ID LPAREN actuals_list RPAREN .  (30)
+
+	.  reduce 30
+
+
+state 64
+	expr : expr . PLUS expr  (12)
+	expr : expr . MINUS expr  (13)
+	expr : expr . TIMES expr  (14)
+	expr : expr . DIV expr  (15)
+	expr : expr . MOD expr  (16)
+	expr : expr . EQUALITY expr  (17)
+	expr : expr . GTHAN expr  (18)
+	expr : expr . LTHAN expr  (19)
+	expr : expr . NSUB expr  (20)
+	expr : expr . NEQUAL expr  (21)
+	expr : expr . AND expr  (22)
+	expr : expr . NOT expr  (23)
+	expr : expr . OR expr  (24)
+	actuals_list : actuals_list expr .  (35)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	TIMES  shift 31
+	DIV  shift 32
+	MOD  shift 33
+	AND  shift 34
+	NOT  shift 35
+	OR  shift 36
+	LTHAN  shift 37
+	GTHAN  shift 38
+	EQUALITY  shift 39
+	NSUB  shift 40
+	NEQUAL  shift 41
+	LPAREN  reduce 35
+	RPAREN  reduce 35
+	LBRACE  reduce 35
+	LITERAL  reduce 35
+	ID  reduce 35
+	STR  reduce 35
+
+
+state 65
+	stmt : IF expr COLON stmt_list ELSE . stmt_list END  (10)
+
+	LPAREN  shift 12
+	LBRACE  shift 13
+	IF  shift 14
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
 	.  error
 
-	stmt  goto 56
-	expr  goto 21
+	stmt_list  goto 66
+	stmt  goto 19
+	expr  goto 20
 
 
-state 56
-	stmt : IF expr COLON stmt ELSE stmt .  (11)
+state 66
+	stmt_list : stmt_list . stmt  (8)
+	stmt : IF expr COLON stmt_list ELSE stmt_list . END  (10)
 
-	.  reduce 11
+	LPAREN  shift 12
+	LBRACE  shift 13
+	IF  shift 14
+	END  shift 67
+	LITERAL  shift 15
+	ID  shift 16
+	STR  shift 17
+	.  error
+
+	stmt  goto 28
+	expr  goto 20
 
 
-30 terminals, 9 nonterminals
-30 grammar rules, 57 states
+state 67
+	stmt : IF expr COLON stmt_list ELSE stmt_list END .  (10)
+
+	.  reduce 10
+
+
+State 6 contains 1 shift/reduce conflict.
+State 13 contains 5 shift/reduce conflicts.
+State 16 contains 1 shift/reduce conflict.
+
+
+32 terminals, 10 nonterminals
+37 grammar rules, 68 states
