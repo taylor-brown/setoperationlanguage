@@ -44,7 +44,7 @@ stmt_list:
 
 stmt:
 		expr {Expr($1)}
-	| IF  expr COLON  stmt ELSE  stmt END { If($2, $4, $6)}
+	| IF  expr COLON  stmt_list ELSE  stmt_list END { If($2, $4, $6)}
 
 
 expr:
