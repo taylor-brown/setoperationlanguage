@@ -17,5 +17,5 @@ function myotherfunc must have args:
 	id
 end
 function emptyfunc onearg:
-	onearg
+	//onearg
 end

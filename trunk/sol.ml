@@ -1,9 +1,10 @@
-let print = true
+let print = false
 
 let _ =
+	let ic = open_in "tests/test-simple.sol" in
+	let lexbuf = Lexing.from_channel ic in
 	
-	let lexbuf = Lexing.from_channel stdin in
-	try
+	(*try*)
 		let program = Parser.program Scanner.token lexbuf in
 		if print then
 			let listing = Solprinter.string_of_program program in
@@ -11,7 +12,7 @@ let _ =
 		
 		else
 			ignore(Interpret.run(program))
-	with exn ->
+(*	with exn ->
 			begin
 				let curr = lexbuf.Lexing.lex_curr_p in
 				let line = curr.Lexing.pos_lnum in
@@ -20,4 +21,4 @@ let _ =
 				print_endline("parse error:\nline " ^ string_of_int line ^ 
 					"\ncnum " ^ string_of_int cnum ^
 					"\ntoken " ^ tok)
-			end
+			end*)
