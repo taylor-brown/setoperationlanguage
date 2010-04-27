@@ -4,8 +4,10 @@ module NameMap = Map.Make(struct
 		type t = string
 		let compare x y = Pervasives.compare x y
 	end)
+	
+(*exception ReturnException of int * int NameMap.t*)
 
-exception ReturnException of int * int NameMap.t
+
 
 (* Main entry point: run a program *)
 
@@ -19,7 +21,8 @@ let run (funcs) =
 			List.fold_left2 (fun inargs argval local -> NameMap.add local argval inargs) NameMap.empty fdecl.formals args 
 		in
 		let rec eval locals expr = match expr with
-			| Noexpr -> locals, Set([Noexpr])
+			| Noexpr -> locals, ReturnValue(Set([Noexpr]))
+			| Assign(id, expr) -> let (_,exprval) = eval locals expr in NameMap.add id exprval, ReturnValue(exprval)  
 (*			| Set(elements) -> (*trying to make this return a set, which itself is a list of Ast.expr.  not working.*)
 				(Set(List.map (fun exprval locals -> exprval) (List.map (fun element -> eval locals element) elements)), locals)*)
 			(*| Assign(id, expr) -> let (exprval,_) = eval locals expr
@@ -35,8 +38,8 @@ let run (funcs) =
 		in
 			exec inargs fdecl.body
 	in
-		try (call (List.hd funcs) [])
-		with | exn  -> raise (Failure "something went wrong")
+		(call (List.hd funcs) [Noexpr])
+
 
 		
 	 
