@@ -21,10 +21,11 @@ let rec string_of_expr = function
 				| Nequal ->  "!=") ^ " " ^ string_of_expr e2
 	| Assign(v,e)  ->  v ^ " = " ^ string_of_expr e
 	| Call(f, el)  ->  f ^ "(" ^ String.concat ", " (List.rev (List.map string_of_expr el)) ^ ")"
-	| Func(f)  -> "not implemented\n"
-	| Str(s) -> s
-	| Set(set) -> "{ " ^ String.concat " " (List.rev (List.map string_of_expr set)) ^ "}" 
+	| Func(f)  -> f.fname
+	| Str(s) -> "\"" ^ s ^"\""
+	| Set(set) -> "{" ^ String.concat " " (List.rev (List.map string_of_expr set)) ^ "}" 
 	| Noexpr -> ""
+	| Bool(b) -> string_of_bool b 
 
 let rec string_of_stmt = function
 	(*| Block(stmts) ->

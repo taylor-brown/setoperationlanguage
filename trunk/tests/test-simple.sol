@@ -1,3 +1,3 @@
-function myfunc:
-	id = "some string"
+function myfunc somearg:
+	myid = "5"
 end
