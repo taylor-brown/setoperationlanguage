@@ -1,15 +1,17 @@
 type token =
   | LPAREN
   | RPAREN
+  | COMMA
   | LBRACE
   | RBRACE
-  | COLON
-  | COMMA
+  | ASSIGN
   | PLUS
   | MINUS
   | TIMES
   | DIV
   | MOD
+  | EOF
+  | EOL
   | AND
   | NOT
   | OR
@@ -22,9 +24,7 @@ type token =
   | ELSE
   | FUNCTION
   | END
-  | ASSIGN
-  | EOF
-  | EOL
+  | COLON
   | LITERAL of (int)
   | ID of (string)
   | STR of (string)

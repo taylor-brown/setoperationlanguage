@@ -2,11 +2,14 @@
 
  %}
 
-%token LPAREN RPAREN LBRACE RBRACE COLON COMMA PLUS MINUS TIMES DIV MOD
-%token AND NOT OR LTHAN GTHAN EQUALITY NSUB NEQUAL IF ELSE FUNCTION END ASSIGN EOF EOL
+%token LPAREN RPAREN COMMA LBRACE RBRACE
+%token ASSIGN PLUS MINUS TIMES DIV MOD
+%token EOF EOL AND NOT OR LTHAN GTHAN EQUALITY NSUB NEQUAL
+%token IF ELSE FUNCTION END COLON 
 %token <int> LITERAL
 %token <string> ID
 %token <string> STR
+%token EOF
 
 %left ASSIGN
 %left EQUALITY NEQUAL
@@ -31,7 +34,7 @@ fdecl:
 				body = List.rev $5}} 
 	
 formal_list:
-	|    {[] }
+	/*|    {[] }*/
 	|	ID {[$1]}
 	| formal_list ID {$2 :: $1 }
 
@@ -60,10 +63,10 @@ expr:
 	| expr NSUB expr {Binop($1, Nsub, $3)}
 	| expr NEQUAL expr {Binop($1, Nequal, $3)}
 	| expr AND expr { Binop($1, And, $3)}
-	| expr NOT expr { Binop($1, Not, $3)}
+	| NOT expr { Binop($2, Not, Noexpr)}
 	| expr OR expr { Binop($1, Or, $3)}
   | ID ASSIGN expr { Assign($1, $3)}
-	| LPAREN expr RPAREN {$2}
+	/*| LPAREN expr RPAREN {$2}*/
 	| LITERAL { Literal($1) }
 	| STR { Str($1) }
   /*| INT { Int($1) }
@@ -73,8 +76,7 @@ expr:
 
 optionals_list:
 	 {[]}
-	| expr { [$1] }
-	| optionals_list expr { $2 :: $1 }
+	| actuals_list {$1}
 
 actuals_list:
 	  expr { [$1] }

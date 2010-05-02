@@ -11,7 +11,7 @@ type expr =
 	| Set of expr list
 	| Str of string
 	| Func of func_decl
-	| ReturnValue of expr
+	(*| ReturnValue of expr*)
 	| Noexpr
 and
  stmt = 
