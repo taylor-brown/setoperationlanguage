@@ -31,7 +31,7 @@ fdecl:
 	FUNCTION ID formal_list COLON stmt_list END
 		{ { fname = $2;
 				formals = $3;
-				body = List.rev $5}} 
+				body = Block(List.rev $5)}} 
 	
 formal_list:
 	/*|    {[] }*/
@@ -47,7 +47,7 @@ stmt_list:
 
 stmt:
 		expr {Expr($1)}
-	| IF  expr COLON  stmt_list ELSE  stmt_list END { If($2, $4, $6)}
+	| IF  expr COLON  stmt_list ELSE  stmt_list END { If($2, Block(List.rev $4), Block(List.rev $6))}
 
 
 expr:

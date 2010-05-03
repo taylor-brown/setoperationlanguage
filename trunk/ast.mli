@@ -15,14 +15,15 @@ type expr =
 	| Noexpr
 and
  stmt = 
-	  (*Block of stmt list*)
+	  Block of stmt list
 	| Expr of expr
-	| If of expr * stmt list * stmt list
+	| If of expr * stmt * stmt
 and
  func_decl = {
 	fname : string;
 	formals : string list;
-	body : stmt list;
+	(*body : stmt list;*)
+	body : stmt;
 	}
 	
 type program = func_decl list

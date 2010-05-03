@@ -1,4 +1,5 @@
 function first inarg secondarg:
+	nonarg  = 5
 	inarg
 end
 
