@@ -1,8 +1,9 @@
 let print = false
 
 let _ =
-	let ic = open_in "tests/test-assign.sol" in
-	(*let lexbuf = Lexing.from_channel ic in*) 
+	(*let ic = open_in "tests/test-assign.sol" in*)
+	(* print_endline("debug mode");*)
+(*	let lexbuf = Lexing.from_channel ic in*)
 	
 	let lexbuf = Lexing.from_channel stdin in
 	let program = Parser.program Scanner.token lexbuf in

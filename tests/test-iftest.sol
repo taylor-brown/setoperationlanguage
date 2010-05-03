@@ -1,20 +1,21 @@
 function iftest ifarg:
 	if {} == {}:
-		{3}
+		{6}
 		if 2!=1:
 			if 2+2 == ifarg:
 				ifarg
+				myarg = 4
 			else
-				0
+				1
 			end
 		else
-			0
+			2
 		end
-	{5}
 	else
 		{}
 	end
+myarg
 end
 function main inargs:
-	iftest(5)
+	iftest(4)
 end

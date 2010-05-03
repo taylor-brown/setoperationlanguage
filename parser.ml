@@ -305,7 +305,7 @@ let yyact = [|
 # 32 "parser.mly"
   ( { fname = _2;
 				formals = _3;
-				body = List.rev _5})
+				body = Block(List.rev _5)})
 # 310 "parser.ml"
                : 'fdecl))
 ; (fun __caml_parser_env ->
@@ -351,7 +351,7 @@ let yyact = [|
     let _6 = (Parsing.peek_val __caml_parser_env 1 : 'stmt_list) in
     Obj.repr(
 # 50 "parser.mly"
-                                                 ( If(_2, _4, _6))
+                                                 ( If(_2, Block(List.rev _4), Block(List.rev _6)))
 # 356 "parser.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
