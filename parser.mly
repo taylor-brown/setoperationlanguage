@@ -7,11 +7,11 @@
 %token EOF EOL AND NOT OR LTHAN GTHAN EQUALITY NSUB NEQUAL
 %token IF ELSE FUNCTION END COLON 
 %token <int> LITERAL
-%token <string> ID
 %token <string> STR
+%token <string> ID
 %token EOF
 
-%left ASSIGN
+%left ASSIGN LPAREN RPAREN
 %left EQUALITY NEQUAL
 %left AND NOT OR LTHAN GTHAN
 %left PLUS MINUS NSUB
@@ -28,11 +28,14 @@ program:
 	| program fdecl {$2 :: $1}
 
 fdecl:
-	FUNCTION ID formal_list COLON stmt_list END
+	FUNCTION ID formal_opt COLON stmt_list END
 		{ { fname = $2;
 				formals = $3;
 				body = Block(List.rev $5)}} 
-	
+formal_opt:
+	{[]}
+	|formal_list {$1}
+
 formal_list:
 	/*|    {[] }*/
 	|	ID {[$1]}
@@ -66,13 +69,11 @@ expr:
 	| NOT expr { Binop($2, Not, Noexpr)}
 	| expr OR expr { Binop($1, Or, $3)}
   | ID ASSIGN expr { Assign($1, $3)}
-	/*| LPAREN expr RPAREN {$2}*/
 	| LITERAL { Literal($1) }
 	| STR { Str($1) }
-  /*| INT { Int($1) }
-  | FLOAT { Float($1) } */
 	| LBRACE optionals_list RBRACE { Set($2) }
-	| ID LPAREN actuals_list RPAREN {Call($1, List.rev $3)}
+	| ID LPAREN optionals_list RPAREN {Call($1, List.rev $3)}
+
 
 optionals_list:
 	 {[]}

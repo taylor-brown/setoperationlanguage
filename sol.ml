@@ -4,15 +4,14 @@ let _ =
 	(*let ic = open_in "tests/test-assign.sol" in*)
 	(* print_endline("debug mode");*)
 (*	let lexbuf = Lexing.from_channel ic in*)
-	let stringAutos = 
-		"function map func set:
-				2
-		 end"  in
+	(*let stringAutos = 
+		""  in
 	let lexbufAutos  = Lexing.from_string stringAutos in
-	let programAutos = Parser.program Scanner.token lexbufAutos in
+	let programAutos = Parser.program Scanner.token lexbufAutos in*)
 	let lexbuf = Lexing.from_channel stdin in
-	let program = Parser.program Scanner.token lexbuf in
-	(*try*)
+	try	
+		let program = Parser.program Scanner.token lexbuf in
+
 		if print then
 		
 			let listing = Solprinter.string_of_program program in
@@ -20,8 +19,9 @@ let _ =
 	
 	else
 		
-			ignore(Interpret.run(program @ programAutos))
-		(*with exn ->
+			ignore(Interpret.run(program))
+
+			with exn ->
 				begin
 					let curr = lexbuf.Lexing.lex_curr_p in
 					let line = curr.Lexing.pos_lnum in
@@ -30,5 +30,4 @@ let _ =
 					print_endline("parse error:\nline " ^ string_of_int line ^
 							"\ncnum " ^ string_of_int cnum ^
 							"\ntoken " ^ tok)
-				end
-				*)
+				end			

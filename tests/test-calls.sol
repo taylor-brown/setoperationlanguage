@@ -1,6 +1,7 @@
-function first inarg secondarg:
-	nonarg  = 5
-	inarg
+function first inarg secondarg: 
+nonarg  = 5 
+inarg
+
 end
 
 function second inarg:
