@@ -19,3 +19,6 @@
 // function emptyfunc onearg:
 	//onearg
 // end
+function myfunction:
+	5
+end

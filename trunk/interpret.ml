@@ -4,6 +4,11 @@ module NameMap = Map.Make(struct
 		type t = string
 		let compare x y = Pervasives.compare x y
 	end)
+	
+module ExprSet = Set.Make(struct
+	type t = Expr
+	let compare x y = Pervasives.compare x y
+	end)
 
 (* exception ReturnException of int * int NameMap.t *)
 
@@ -15,8 +20,10 @@ let run (funcs) =
 			NameMap.empty funcs
 	in
 	let rec call fdecl args =
-		let locals =
-			List.fold_left2 (fun locals formal actual -> NameMap.add formal actual locals) NameMap.empty fdecl.formals args
+		let locals = match args with
+			| [] -> NameMap.empty
+			| [Noexpr] -> NameMap.empty
+			| _ -> List.fold_left2 (fun locals formal actual -> NameMap.add formal actual locals) NameMap.empty fdecl.formals args
 		in
 		let rec eval env expr = match expr with
 			| Noexpr -> env, Set([Noexpr])
@@ -46,14 +53,16 @@ let run (funcs) =
 			| Call("map", cargs) ->  let margs = List.map (fun item -> let (_, mval) = eval env item in mval) cargs in
 				env, (match margs with 
 					| [Func(id); Set(mset)] -> let func = if NameMap.mem id.fname func_decls then NameMap.find id.fname func_decls else raise(Failure "function not found ") in
-						Set(List.map (fun item -> snd(call func [item])) mset) 
+						Set(List.map (fun item -> call func [item]) mset) 
 					| _  -> raise(Failure "map must be called with a function and a set"))
-			(*| Call("apply", args) -> 
+			| Call("apply", args) ->
 				env, (match args with
- 				| [Func(func) ; arg] -> 
-				| _ -> raise(Failure "apply arguments must be a function id and arguments"))*)
+ 				| Func(id) :: arg -> if NameMap.mem id.fname func_decls then 
+						(call (NameMap.find id.fname func_decls) arg)
+					else raise(Failure "unknown function name")
+				| _ -> raise(Failure "apply arguments must be a function id and arguments"))
 			| Call("filter", toprint) ->  raise(Failure "filter not implemented")  
-			| Call(id, cargs) -> if NameMap.mem id func_decls then 
+			| Call(id, cargs) -> if NameMap.mem id func_decls then
 						let margs = List.rev ( List.map (fun item -> let (_, mval) = eval env item in mval) cargs)
 						in env, (call (NameMap.find id func_decls) margs)
 					else raise(Failure "unknown function name")
@@ -129,4 +138,8 @@ let run (funcs) =
 		in
 		snd (exec locals fdecl.body)
 	in
+	try
 	print_endline(Solprinter.string_of_expr(call (List.hd funcs) [Noexpr]))
+	with exn -> match exn with
+		| Failure(text) -> print_endline text
+		| _ -> raise exn
