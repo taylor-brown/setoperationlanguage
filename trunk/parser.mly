@@ -72,7 +72,7 @@ expr:
   /*| INT { Int($1) }
   | FLOAT { Float($1) } */
 	| LBRACE optionals_list RBRACE { Set($2) }
-	| ID LPAREN actuals_list RPAREN {Call($1, $3)}
+	| ID LPAREN actuals_list RPAREN {Call($1, List.rev $3)}
 
 optionals_list:
 	 {[]}

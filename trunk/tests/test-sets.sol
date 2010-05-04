@@ -3,5 +3,5 @@ function goesinset somearg:
 end
 function testset inarg:
 	emptyset = {{}{}}
-	nonempty = {5 3 goesinset}
+	nonempty = {5 3 {5 {6 {7}}} goesinset}
 end

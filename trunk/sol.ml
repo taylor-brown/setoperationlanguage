@@ -4,7 +4,12 @@ let _ =
 	(*let ic = open_in "tests/test-assign.sol" in*)
 	(* print_endline("debug mode");*)
 (*	let lexbuf = Lexing.from_channel ic in*)
-	
+	let stringAutos = 
+		"function map func set:
+				2
+		 end"  in
+	let lexbufAutos  = Lexing.from_string stringAutos in
+	let programAutos = Parser.program Scanner.token lexbufAutos in
 	let lexbuf = Lexing.from_channel stdin in
 	let program = Parser.program Scanner.token lexbuf in
 	(*try*)
@@ -15,7 +20,7 @@ let _ =
 	
 	else
 		
-			ignore(Interpret.run(program))
+			ignore(Interpret.run(program @ programAutos))
 		(*with exn ->
 				begin
 					let curr = lexbuf.Lexing.lex_curr_p in
