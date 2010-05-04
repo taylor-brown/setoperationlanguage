@@ -498,7 +498,7 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'actuals_list) in
     Obj.repr(
 # 75 "parser.mly"
-                                 (Call(_1, _3))
+                                 (Call(_1, List.rev _3))
 # 503 "parser.ml"
                : 'expr))
 ; (fun __caml_parser_env ->

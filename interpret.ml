@@ -38,14 +38,23 @@ let run (funcs) =
 			| Call("pop", set) -> env, (match set with
 				| [Set(set)] -> List.hd set
 				| _ -> raise(Failure "pop argument must be single set"))
-			| Call("push", set) -> env, (match set with
-				(* bug here *)
-				| (Set(mset) :: arg) -> if List.length arg = 1 then Set(List.hd arg :: mset) else  raise(Failure "push arguments must be a set and an expression"))
+			| Call("push", set) ->let margs = List.map (fun item -> let (_, mval) = eval env item in mval) set
+				in env, (match margs with
+ 				| [Set(mset) ; arg] -> Set(arg :: mset)
+				| _ -> raise(Failure "push arguments must be a set and an expression"))
 			| Call("print", toprint) -> List.map (fun mprint -> print_endline(Solprinter.string_of_expr (snd(eval env mprint)))) toprint; env, Set([Noexpr])
-			| Call("map", toprint) ->  raise(Failure "map not impemented")
+			| Call("map", cargs) ->  let margs = List.map (fun item -> let (_, mval) = eval env item in mval) cargs in
+				env, (match margs with 
+					| [Func(id); Set(mset)] -> let func = if NameMap.mem id.fname func_decls then NameMap.find id.fname func_decls else raise(Failure "function not found ") in
+						Set(List.map (fun item -> snd(call func [item])) mset) 
+					| _  -> raise(Failure "map must be called with a function and a set"))
+			(*| Call("apply", args) -> 
+				env, (match args with
+ 				| [Func(func) ; arg] -> 
+				| _ -> raise(Failure "apply arguments must be a function id and arguments"))*)
 			| Call("filter", toprint) ->  raise(Failure "filter not implemented")  
 			| Call(id, cargs) -> if NameMap.mem id func_decls then 
-						let margs = List.map (fun item -> let (_, mval) = eval env item in mval) cargs
+						let margs = List.rev ( List.map (fun item -> let (_, mval) = eval env item in mval) cargs)
 						in env, (call (NameMap.find id func_decls) margs)
 					else raise(Failure "unknown function name")
 			| Set(set) -> let mset = List.map (fun item -> let (_, mval) = eval env item in mval) set
@@ -63,7 +72,7 @@ let run (funcs) =
 									| _ -> raise(Failure("invalid types for plus")))
 						| Minus -> (match expr1, expr2 with
 									| Literal e1, Literal e2 -> Literal(e1 - e2)
-									| Set(e1), Set(e2) -> raise(Failure("set difference not yet implemented"))
+									| Set(e1), Set(e2) -> Set(List.filter (fun item -> not( List.mem item e2)) e1)  
 									| _ -> raise(Failure("invalid types for minus")))
 						| Times -> (match expr1, expr2 with
 									| Literal e1, Literal e2 -> Literal(e1 * e2)
@@ -82,7 +91,7 @@ let run (funcs) =
 									| _ -> raise(Failure("invalid types for equality")))
 						| And -> (match expr1, expr2 with
 									| Bool e1, Bool e2 -> Bool(e1 & e2)
-									| Set e1, Set e2 -> raise(Failure("union of set not implemented"))
+									| Set e1, Set e2 -> Set(e1 @ e2)
 									| _ -> raise(Failure("invalid types for and")))
 						| Not -> (match expr1 with
 									| Bool e1 -> Bool(not e1)
@@ -106,13 +115,6 @@ let run (funcs) =
 									| Literal e1, Literal e2 -> Bool(e1 != e2)
 									| Str e1, Str e2 -> Bool(e1 != e2)
 									| _ -> raise(Failure("invalid types for not equal"))))
-		
-		(* | Set(elements) -> (*trying to make this return a set, which itself *)
-		(* is a list of Ast.expr. not working.                                 *)
-		(Set(List.map (fun exprval locals -> exprval) (List.map (fun element -> eval locals element) elements)), locals) *)
-		(*| Assign(id, expr) -> let (exprval,_) = eval locals expr
-		in
-		(exprval, NameMap.add id exprval locals) *)
 		in
 		let rec iftest execlocals test b1 b2 = let(_, result) = (eval execlocals test)in match result with
 			| Bool(rst) ->(*print_endline(Solprinter.string_of_stmt b1);*) if rst then b1 else b2
@@ -124,11 +126,6 @@ let run (funcs) =
 					else exec local (Block(List.tl stmts))
 			| Expr expr -> eval execlocals expr
 			| If(test, b1, b2) -> exec execlocals (iftest execlocals test b1 b2)
-		(*| [Expr expr] -> eval locals expr
-		| Expr hd :: stmt -> let (local, _) = eval locals hd in exec local stmt
-		(*| Stmt hd :: stmt -> let (local, _) = exec locals hd in exec local stmt*)
-		| [If(test, b1, b2)] -> iftest test b1 b2
-		| If(test, b1, b2) :: stmt -> let(local, _) = iftest test b1 b2 in exec local stmt *)
 		in
 		snd (exec locals fdecl.body)
 	in
