@@ -43,12 +43,15 @@ let run (funcs) =
 				else if NameMap.mem id func_decls then 
 						env, Func(NameMap.find id func_decls) 
 					else raise(Failure ("unknown variable " ^ id))
-			| Call("sizeof", set) -> env, (match set with
+			| Call("sizeof", set) ->  let margs = List.map (fun item -> let (_, mval) = eval env item in mval) set in
+				env, (match margs with
 				| [Set(set)] -> Literal( List.length set)
 				| _ -> raise(Failure "sizeof argument must be single set"))
-			| Call("pop", set) -> env, (match set with
-				| [Set(set)] -> List.hd set
-				| _ -> raise(Failure "pop argument must be single set"))
+			| Call("pop", set) -> let margs = List.map (fun item -> let (_, mval) = eval env item in mval) set in 
+				env, (match margs with
+				| [Set(aset)] -> if List.length aset > 0 then List.hd aset else Set([Noexpr])
+				| hd :: tl  -> List.iter (fun mprint -> print_endline(Solprinter.string_of_expr (snd(eval env mprint)))) tl; hd
+				| toprint -> List.iter (fun mprint -> print_endline(Solprinter.string_of_expr (snd(eval env mprint)))) toprint;  raise(Failure "pop argument must be single set"))
 			| Call("push", set) ->let margs = List.map (fun item -> let (_, mval) = eval env item in mval) set
 				in env, (match margs with
  				| [Set(mset) ; arg] -> Set(setify (arg :: mset))
@@ -59,12 +62,6 @@ let run (funcs) =
 					| [Func(id); Set(mset)] -> let func = if NameMap.mem id.fname func_decls then NameMap.find id.fname func_decls else raise(Failure "function not found ") in
 						Set(setify(List.map (fun item -> call func [item]) mset)) 
 					| _  -> raise(Failure "map must be called with a function and a set"))
-			| Call("apply", args) ->
-				env, (match args with
- 				| Func(id) :: arg -> if NameMap.mem id.fname func_decls then 
-						(call (NameMap.find id.fname func_decls) arg)
-					else raise(Failure "unknown function name")
-				| _ -> raise(Failure "apply arguments must be a function id and arguments"))
 			| Call("filter", cargs) ->    let margs = List.map (fun item -> let (_, mval) = eval env item in mval) cargs in
 				env, (match margs with 
 					| [Func(id); Set(mset)] -> let func = if NameMap.mem id.fname func_decls then NameMap.find id.fname func_decls else raise(Failure "function not found ") in
@@ -119,11 +116,11 @@ let run (funcs) =
 									| _ -> raise(Failure("invalid types for or")))
 						| Gthan -> (match expr1, expr2 with
 									| Literal e1, Literal e2 -> Bool(e1 > e2)
-									| Set e1, Set e2 -> Bool(List.length (List.filter (fun item -> List.mem item e2) e1) >= (List.length e2))
+									| Set e1, Set e2 -> Bool(List.length (List.filter (fun item -> List.mem item e2) e1) <= (List.length e2))
 									| _ -> raise(Failure("invalid types for >")))
 						| Lthan -> (match expr1, expr2 with
 									| Literal e1, Literal e2 -> Bool(e1 < e2)
-									| Set e1, Set e2 -> Bool(List.length (List.filter (fun item -> List.mem item e2) e1) <= (List.length e1))
+									| Set e1, Set e2 -> Bool(List.length (List.filter (fun item -> List.mem item e2) e1) >= (List.length e1))
 									| _ -> raise(Failure("invalid types for <")))
 						| Nsub -> (match expr1, expr2 with
 									| Set e1, Set e2 ->Bool(List.length (List.filter (fun item -> List.mem item e2) e1) = 0)
@@ -134,6 +131,7 @@ let run (funcs) =
 									| Str e1, Str e2 -> Bool(e1 != e2)
 									| _ -> raise(Failure("invalid types for not equal"))))
 		in
+		(*each if statement is isolated lexically - it can't return new variable declarations*)
 		let rec iftest execlocals test b1 b2 = let(_, result) = (eval execlocals test)in match result with
 			| Bool(rst) -> if rst then b1 else b2
 			| _ -> raise(Failure "can only compare boolean relationships")
@@ -148,6 +146,7 @@ let run (funcs) =
 		snd (exec locals fdecl.body)
 	in
 	try
+		(*print the final result*)
 	print_endline(Solprinter.string_of_expr(call (List.hd funcs) [Noexpr]))
 	with exn -> match exn with
 		| Failure(text) -> print_endline text

@@ -377,15 +377,15 @@ state 25
 	TIMES  shift 33
 	DIV  shift 34
 	MOD  shift 35
+	AND  shift 36
+	OR  shift 37
+	LTHAN  shift 38
+	GTHAN  shift 39
 	NSUB  shift 41
 	RPAREN  reduce 24
 	LBRACE  reduce 24
 	RBRACE  reduce 24
-	AND  reduce 24
 	NOT  reduce 24
-	OR  reduce 24
-	LTHAN  reduce 24
-	GTHAN  reduce 24
 	EQUALITY  reduce 24
 	NEQUAL  reduce 24
 	IF  reduce 24
@@ -884,15 +884,15 @@ state 53
 	TIMES  shift 33
 	DIV  shift 34
 	MOD  shift 35
+	OR  shift 37
+	LTHAN  shift 38
+	GTHAN  shift 39
 	NSUB  shift 41
 	RPAREN  reduce 23
 	LBRACE  reduce 23
 	RBRACE  reduce 23
 	AND  reduce 23
 	NOT  reduce 23
-	OR  reduce 23
-	LTHAN  reduce 23
-	GTHAN  reduce 23
 	EQUALITY  reduce 23
 	NEQUAL  reduce 23
 	IF  reduce 23
@@ -924,6 +924,8 @@ state 54
 	TIMES  shift 33
 	DIV  shift 34
 	MOD  shift 35
+	LTHAN  shift 38
+	GTHAN  shift 39
 	NSUB  shift 41
 	RPAREN  reduce 25
 	LBRACE  reduce 25
@@ -931,8 +933,6 @@ state 54
 	AND  reduce 25
 	NOT  reduce 25
 	OR  reduce 25
-	LTHAN  reduce 25
-	GTHAN  reduce 25
 	EQUALITY  reduce 25
 	NEQUAL  reduce 25
 	IF  reduce 25
