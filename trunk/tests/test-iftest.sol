@@ -14,7 +14,6 @@ function iftest ifarg:
 	else
 		{}
 	end
-myarg
 end
 function main inargs:
 	iftest(4)
