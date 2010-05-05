@@ -1,15 +1,15 @@
 let print = false
 
 let _ =
-	(*let ic = open_in "tests/test-assign.sol" in*)
-	(* print_endline("debug mode");*)
-(*	let lexbuf = Lexing.from_channel ic in*)
+(*let ic = open_in "tests/test-binops.sol" in*)
+(* print_endline("debug mode");              *)
+(*	let lexbuf = Lexing.from_channel ic in   *)
 	(*let stringAutos = 
 		""  in
 	let lexbufAutos  = Lexing.from_string stringAutos in
 	let programAutos = Parser.program Scanner.token lexbufAutos in*)
 	let lexbuf = Lexing.from_channel stdin in
-	try	
+	try
 		let program = Parser.program Scanner.token lexbuf in
 
 		if print then
@@ -21,7 +21,8 @@ let _ =
 		
 			ignore(Interpret.run(program))
 
-			with exn ->
+			with exn -> match exn with
+				| Parsing.Parse_error ->
 				begin
 					let curr = lexbuf.Lexing.lex_curr_p in
 					let line = curr.Lexing.pos_lnum in
@@ -30,4 +31,5 @@ let _ =
 					print_endline("parse error:\nline " ^ string_of_int line ^
 							"\ncnum " ^ string_of_int cnum ^
 							"\ntoken " ^ tok)
-				end			
+				end
+				|_ -> raise(exn)
