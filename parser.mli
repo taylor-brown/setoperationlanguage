@@ -26,8 +26,8 @@ type token =
   | END
   | COLON
   | LITERAL of (int)
-  | ID of (string)
   | STR of (string)
+  | ID of (string)
 
 val program :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf ->  Ast.program
