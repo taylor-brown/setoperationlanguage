@@ -13,7 +13,10 @@
 
 %left ASSIGN LPAREN RPAREN
 %left EQUALITY NEQUAL
-%left AND NOT OR LTHAN GTHAN
+%left NOT
+%left AND 
+%left OR
+%left LTHAN GTHAN
 %left PLUS MINUS NSUB
 %left TIMES DIV MOD
 

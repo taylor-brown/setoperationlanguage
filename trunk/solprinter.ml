@@ -20,7 +20,7 @@ let rec string_of_expr = function
 				| Nsub ->  "!<"
 				| Nequal ->  "!=") ^ " " ^ string_of_expr e2
 	| Assign(v,e)  ->  v ^ " = " ^ string_of_expr e
-	| Call(f, el)  ->  f ^ "(" ^ String.concat ", " (List.rev (List.map string_of_expr el)) ^ ")"
+	| Call(f, el)  ->  f ^ "(" ^ String.concat " " (List.map string_of_expr el) ^ ")"
 	| Func(f)  -> f.fname
 	| Str(s) -> "\"" ^ s ^"\""
 	| Set(set) -> "{" ^ String.concat " " (List.rev (List.map string_of_expr set)) ^ "}" 
@@ -29,12 +29,12 @@ let rec string_of_expr = function
 
 let rec string_of_stmt = function
 	| Block(stmts) ->
-		"\t" ^ String.concat "" (List.map string_of_stmt stmts) ^ "\n"
+		"\t" ^ String.concat "\t" (List.map string_of_stmt stmts) ^ "\n"
 	| Expr(expr)  -> string_of_expr expr ^ "\n"
-	| If(test, b1, b2)  -> "if (" ^ string_of_expr test ^ "):\n" ^ (string_of_stmt b1) ^ "else:\n" ^ (string_of_stmt b2) ^ "end\n" 
+	| If(test, b1, b2)  -> "if " ^ string_of_expr test ^ ":\n" ^ (string_of_stmt b1) ^ "\telse:\n" ^ (string_of_stmt b2) ^ "\tend\n" 
 
 let rec string_of_fdecl fdecl =
-	"function " ^fdecl.fname ^ " " ^ String.concat "," (List.rev fdecl.formals) ^ "\n" ^ (string_of_stmt fdecl.body) ^ "\nend\n"
+	"function " ^fdecl.fname ^ " " ^ String.concat " " (List.rev fdecl.formals) ^ "\n" ^ (string_of_stmt fdecl.body) ^ "\nend\n"
 
 let string_of_program(funcs) =
 	String.concat "\n" (List.map string_of_fdecl funcs) 
