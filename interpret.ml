@@ -5,8 +5,6 @@ module NameMap = Map.Make(struct
 		let compare x y = Pervasives.compare x y
 	end)
 	
-(* exception ReturnException of int * int NameMap.t *)
-
 (* Main entry point: run a program *)
 
 let run (funcs) =
@@ -24,6 +22,7 @@ let run (funcs) =
 			let nonsets = List.filter (fun item -> match item with | Set(item) -> false	| _ -> true) inset in
 			( uniqueList(List.sort Pervasives.compare nonsets) @ (uniqueList (List.map (fun item -> Set(setify item)) sets)))
 	in
+	(* call new function - each function call initiates a new lexical scope.*)
 	let rec call fdecl args =
 		let locals = match args with
 			| [] -> NameMap.empty
@@ -51,7 +50,6 @@ let run (funcs) =
 				| [Set(set)] -> List.hd set
 				| _ -> raise(Failure "pop argument must be single set"))
 			| Call("push", set) ->let margs = List.map (fun item -> let (_, mval) = eval env item in mval) set
-				(*in let margs = setify margs*)
 				in env, (match margs with
  				| [Set(mset) ; arg] -> Set(setify (arg :: mset))
 				| _ -> raise(Failure "push arguments must be a set and an expression"))
@@ -137,7 +135,7 @@ let run (funcs) =
 									| _ -> raise(Failure("invalid types for not equal"))))
 		in
 		let rec iftest execlocals test b1 b2 = let(_, result) = (eval execlocals test)in match result with
-			| Bool(rst) ->(*print_endline(Solprinter.string_of_stmt b1);*) if rst then b1 else b2
+			| Bool(rst) -> if rst then b1 else b2
 			| _ -> raise(Failure "can only compare boolean relationships")
 		and
 		exec execlocals stmt = match stmt with
@@ -145,7 +143,7 @@ let run (funcs) =
 					if (List.length stmts) = 1 then local, result
 					else exec local (Block(List.tl stmts))
 			| Expr expr -> eval execlocals expr
-			| If(test, b1, b2) -> exec execlocals (iftest execlocals test b1 b2)
+			| If(test, b1, b2) ->execlocals, snd( exec execlocals (iftest execlocals test b1 b2))
 		in
 		snd (exec locals fdecl.body)
 	in
