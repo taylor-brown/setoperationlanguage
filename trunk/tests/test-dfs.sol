@@ -4,8 +4,7 @@ function treeSearch graph tree:
   else
     edge = pop(graph)
     vertex = pop(edge)
-    v2 = pop(edge - {vertex})
-		if unvisitedVertex(tree vertex) | unvisitedVertex(tree v2):
+		if unvisitedVertex(tree vertex) | unvisitedVertex(tree pop(edge - {vertex})):
       treeSearch(graph - {edge} push(tree edge))
 		else
       treeSearch(graph - {edge} tree)
